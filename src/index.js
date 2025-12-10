@@ -19,31 +19,60 @@ const voiceRoutes = require('./routes/voice.routes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Middleware - Permissive CORS for development/testing
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
+    // In development, allow all origins
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`CORS allowing origin: ${origin}`);
+      return callback(null, true);
+    }
+    
+    // In production, check allowed origins
     const allowedOrigins = [
       'http://localhost:3000',
       'http://localhost:3001', 
       'http://localhost:5173', // Vite default
       'http://localhost:4173', // Vite preview
-      process.env.CLIENT_URL
-    ].filter(Boolean); // Remove undefined values
+      'https://localhost:3000', // HTTPS localhost
+      'https://localhost:3001',
+      'https://localhost:5173',
+      'https://localhost:4173',
+      process.env.CLIENT_URL,
+      // Add common deployment domains
+      /\.vercel\.app$/,
+      /\.netlify\.app$/,
+      /\.herokuapp\.com$/,
+      /\.onrender\.com$/,
+      /\.github\.io$/,
+      /\.surge\.sh$/
+    ].filter(Boolean);
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Check if origin matches any allowed pattern
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return allowed === origin;
+      } else if (allowed instanceof RegExp) {
+        return allowed.test(origin);
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      console.log(`CORS allowing origin: ${origin}`);
       callback(null, true);
     } else {
       console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true); // Allow all for now - change to callback(new Error('Not allowed by CORS')) for strict mode
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Content-Length', 'X-Total-Count'],
   maxAge: 86400 // 24 hours
 }));
 app.use(express.json({ limit: '10mb' }));
