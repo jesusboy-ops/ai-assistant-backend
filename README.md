@@ -1,311 +1,332 @@
-# Smart AI Personal Assistant - Backend
+# 🤖 Smart AI Personal Assistant Backend
 
-A professional, production-ready backend for an AI-powered personal assistant (like JARVIS) built with Node.js, Express, Supabase, OpenAI GPT, Redis, and more.
+A comprehensive, production-ready backend for an AI-powered personal assistant with advanced features including task management, smart reminders, document summarization, and more.
 
-## Features
+## ✨ Features
 
-- **Authentication & Authorization**
-  - Email/Password registration and login
-  - Google OAuth integration
-  - JWT-based authentication
-  - Email verification
-  - Password reset functionality
+### 🔐 **Authentication & Security**
+- JWT-based authentication with refresh tokens
+- Google OAuth 2.0 integration
+- Email verification system
+- Password reset functionality
+- Row-level security (RLS) with Supabase
 
-- **AI Chat Assistant**
-  - GPT-4 powered conversations
-  - Conversation history management
-  - Context-aware responses
+### 🤖 **AI-Powered Features**
+- **AI Chat Assistant** - GPT-4 powered conversations
+- **Task Manager** - Extract tasks from natural language
+- **Smart Reminders** - AI-powered reminder creation
+- **Document Summarizer** - Upload and summarize documents
+- **Email Generator** - AI-generated professional emails
+- **Voice Features** - Text-to-speech and speech-to-text
 
-- **AI Email Generator**
-  - Generate professional emails using AI
-  - Multiple tone options (professional, casual, formal, friendly)
-  - Send emails via SendGrid
+### 📊 **Core Functionality**
+- **Calendar Management** - Events, scheduling, reminders
+- **Notes System** - Rich text notes with tags and search
+- **File Upload** - Multi-provider support (Supabase, Cloudinary)
+- **Push Notifications** - Web push notifications with VAPID
+- **Real-time Features** - WebSocket support ready
 
-- **Calendar Management**
-  - Create, read, update, delete events
-  - Event reminders
-  - Date range filtering
-
-- **Notes System**
-  - Create and manage notes
-  - Tag-based organization
-  - Full-text search
-
-- **File Uploads**
-  - Support for Supabase Storage and Cloudinary
-  - Profile picture uploads
-  - File management
-
-- **Push Notifications**
-  - Web Push notifications using VAPID
-  - Redis-based job queue
-  - Subscription management
-
-- **Voice Features**
-  - Text-to-Speech using OpenAI TTS
-  - Speech-to-Text transcription
-  - Multiple voice options
-
-## Tech Stack
-
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: JWT, Google OAuth
-- **AI**: OpenAI GPT-4
-- **Caching/Queue**: Redis, Bull
-- **Email**: SendGrid
-- **Storage**: Supabase Storage, Cloudinary (optional)
-- **Push Notifications**: web-push
-
-## Project Structure
-
-```
-├── src/
-│   ├── config/           # Configuration files
-│   │   ├── supabase.js
-│   │   ├── redis.js
-│   │   ├── openai.js
-│   │   ├── cloudinary.js
-│   │   └── sendgrid.js
-│   ├── controllers/      # Request handlers
-│   ├── services/         # Business logic
-│   ├── routes/           # API routes
-│   ├── middlewares/      # Custom middleware
-│   ├── utils/            # Utility functions
-│   └── index.js          # Application entry point
-├── database/
-│   └── schema.sql        # Database schema
-├── .env.example          # Environment variables template
-├── package.json
-└── README.md
-```
-
-## Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-
-- Node.js >= 18.0.0
+- Node.js 18+ 
 - Supabase account
 - OpenAI API key
-- Redis instance (local or cloud)
-- SendGrid account (optional, for emails)
-- Cloudinary account (optional, for image uploads)
 
-### Setup Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd ai-assistant-backend
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` and fill in your credentials:
-   - Supabase URL and Service Key
-   - OpenAI API Key
-   - Redis URL
-   - JWT Secret (generate a random string)
-   - SendGrid API Key (optional)
-   - Google OAuth credentials (optional)
-   - Cloudinary credentials (optional)
-
-4. **Set up Supabase database**
-   - Go to your Supabase project
-   - Navigate to SQL Editor
-   - Copy and paste the contents of `database/schema.sql`
-   - Run the SQL script
-   - Go to Storage and create a bucket named "files" (set as public)
-
-5. **Generate VAPID keys** (optional - auto-generated on first run)
-   ```bash
-   npm run generate-vapid
-   ```
-
-6. **Start the development server**
-   ```bash
-   npm run dev
-   ```
-
-   Or for production:
-   ```bash
-   npm start
-   ```
-
-The server will start on `http://localhost:5000`
-
-## API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `POST /api/auth/oauth/google` - Google OAuth login
-- `POST /api/auth/password-reset/request` - Request password reset
-- `POST /api/auth/password-reset/confirm` - Confirm password reset
-- `GET /api/auth/verify-email` - Verify email
-- `GET /api/auth/me` - Get current user
-
-### User Profile
-- `GET /api/user/profile` - Get user profile
-- `PUT /api/user/profile` - Update profile
-- `POST /api/user/profile/picture` - Upload profile picture
-- `POST /api/user/change-password` - Change password
-- `DELETE /api/user/account` - Delete account
-
-### AI Chat
-- `POST /api/chat/message` - Send message to AI
-- `GET /api/chat/conversations` - Get all conversations
-- `GET /api/chat/conversations/:id` - Get conversation history
-- `DELETE /api/chat/conversations/:id` - Delete conversation
-
-### Email
-- `POST /api/email/generate` - Generate email with AI
-- `POST /api/email/send` - Send email via SendGrid
-- `POST /api/email/generate-and-send` - Generate and send email
-
-### Calendar
-- `POST /api/calendar/events` - Create event
-- `GET /api/calendar/events` - Get all events
-- `GET /api/calendar/events/:id` - Get single event
-- `PUT /api/calendar/events/:id` - Update event
-- `DELETE /api/calendar/events/:id` - Delete event
-
-### Notes
-- `POST /api/notes` - Create note
-- `GET /api/notes` - Get all notes
-- `GET /api/notes/:id` - Get single note
-- `PUT /api/notes/:id` - Update note
-- `DELETE /api/notes/:id` - Delete note
-
-### File Upload
-- `POST /api/upload` - Upload file
-- `GET /api/upload/files` - Get user files
-- `DELETE /api/upload/files/:id` - Delete file
-
-### Notifications
-- `GET /api/notifications/vapid-public-key` - Get VAPID public key
-- `POST /api/notifications/subscribe` - Subscribe to notifications
-- `POST /api/notifications/unsubscribe` - Unsubscribe
-- `POST /api/notifications/test` - Send test notification
-
-### Voice
-- `POST /api/voice/text-to-speech` - Convert text to speech
-- `POST /api/voice/speech-to-text` - Transcribe audio
-- `GET /api/voice/voices` - Get available voices
-
-## Deployment on Render
-
-1. **Create a new Web Service on Render**
-   - Connect your GitHub repository
-   - Select "Node" as the environment
-
-2. **Configure Build & Start Commands**
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-
-3. **Add Environment Variables**
-   - Go to Environment tab
-   - Add all variables from your `.env` file
-   - Make sure to set `NODE_ENV=production`
-
-4. **Add Redis**
-   - Create a Redis instance on Render or use external service
-   - Update `REDIS_URL` environment variable
-
-5. **Deploy**
-   - Click "Create Web Service"
-   - Render will automatically deploy your application
-
-## Environment Variables Reference
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `PORT` | Server port | No (default: 5000) |
-| `NODE_ENV` | Environment (development/production) | No |
-| `CLIENT_URL` | Frontend URL for CORS | No |
-| `SUPABASE_URL` | Supabase project URL | Yes |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key | Yes |
-| `OPENAI_API_KEY` | OpenAI API key | Yes |
-| `JWT_SECRET` | Secret for JWT signing | Yes |
-| `JWT_EXPIRES_IN` | JWT expiration time | No (default: 7d) |
-| `REDIS_URL` | Redis connection URL | Yes |
-| `SENDGRID_API_KEY` | SendGrid API key | No |
-| `EMAIL_FROM` | Sender email address | No |
-| `GOOGLE_CLIENT_ID` | Google OAuth client ID | No |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret | No |
-| `GOOGLE_REDIRECT_URI` | Google OAuth redirect URI | No |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | No |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | No |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | No |
-| `VAPID_PUBLIC_KEY` | VAPID public key (auto-generated) | No |
-| `VAPID_PRIVATE_KEY` | VAPID private key (auto-generated) | No |
-
-## Security Features
-
-- Password hashing with bcrypt
-- JWT-based authentication
-- Input validation with express-validator
-- Row Level Security (RLS) in Supabase
-- CORS protection
-- File upload restrictions
-- Error handling middleware
-
-## Error Handling
-
-The API uses standard HTTP status codes:
-- `200` - Success
-- `201` - Created
-- `400` - Bad Request
-- `401` - Unauthorized
-- `404` - Not Found
-- `500` - Internal Server Error
-
-Error responses follow this format:
-```json
-{
-  "error": "Error message here"
-}
+### 1. Clone & Install
+```bash
+git clone https://github.com/yourusername/ai-assistant-backend.git
+cd ai-assistant-backend
+npm install
 ```
 
-## Development
+### 2. Environment Setup
+```bash
+# Copy environment template
+cp .env.example .env
 
-### Running in Development Mode
+# Edit .env with your credentials
+# Required: SUPABASE_URL, SUPABASE_SERVICE_KEY, OPENAI_API_KEY, JWT_SECRET
+```
+
+### 3. Database Setup
+```bash
+# Run the SQL schema in your Supabase SQL Editor
+# Copy content from: database/schema.sql
+```
+
+### 4. Start Development Server
 ```bash
 npm run dev
 ```
 
-### Generate VAPID Keys
+### 5. Verify Setup
 ```bash
-npm run generate-vapid
+# Test all endpoints
+npm run test-endpoints
+
+# Check health
+curl http://localhost:5000/health
 ```
 
-## Testing
+## 📋 API Endpoints
 
-Test the API using tools like:
-- Postman
-- Thunder Client (VS Code extension)
-- cURL
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/oauth/google` - Google OAuth
+- `GET /api/auth/me` - Get current user
 
-Example request:
-```bash
-curl -X POST http://localhost:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123","name":"Test User"}'
+### AI Features
+- `POST /api/chat/message` - Send message to AI
+- `POST /api/tasks/from-message` - Extract tasks from text
+- `POST /api/reminders/from-message` - Create reminders from text
+- `POST /api/documents/summarize` - Summarize documents
+- `POST /api/email/generate` - Generate emails
+
+### Task Management
+- `GET/POST/PUT/DELETE /api/tasks` - CRUD operations
+- `POST /api/tasks/suggestions` - AI task suggestions
+
+### Smart Reminders
+- `GET/POST/PUT/DELETE /api/reminders` - CRUD operations
+- `GET /api/reminders/upcoming` - Upcoming reminders
+
+### Document Processing
+- `POST /api/documents/summarize` - Upload & summarize
+- `GET /api/documents/summaries` - Get all summaries
+- `POST /api/documents/key-points` - Extract key points
+
+### Additional Features
+- Calendar events, notes, file upload, voice features, notifications
+
+**Total: 54 API endpoints** - See [API_EXAMPLES.md](API_EXAMPLES.md) for complete documentation.
+
+## 🛠️ Configuration
+
+### Required Environment Variables
+```env
+# Server
+PORT=5000
+NODE_ENV=development
+CLIENT_URL=http://localhost:3000
+
+# Database
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-role-key
+
+# AI
+OPENAI_API_KEY=your-openai-api-key
+
+# Security
+JWT_SECRET=your-jwt-secret-key
 ```
 
-## Support
+### Optional Services
+```env
+# Redis (for caching)
+REDIS_URL=redis://localhost:6379
 
-For issues or questions, please open an issue in the repository.
+# Email (SendGrid)
+SENDGRID_API_KEY=your-sendgrid-key
+EMAIL_FROM=noreply@yourdomain.com
 
-## License
+# File Storage (Cloudinary)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 
-ISC
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+## 🧪 Testing & Development
+
+### Available Scripts
+```bash
+npm run dev          # Start development server
+npm run start        # Start production server
+npm run test-endpoints # Test all API endpoints
+npm run fix          # Diagnose common issues
+npm run setup        # Interactive setup guide
+```
+
+### Health Checks
+```bash
+# Server health
+curl http://localhost:5000/health
+
+# API status
+curl http://localhost:5000/api/status
+
+# Test CORS
+curl -X OPTIONS http://localhost:5000/api/auth/login \
+  -H "Origin: http://localhost:3000"
+```
+
+## 🌐 Frontend Integration
+
+### Supported Frameworks
+- ✅ React/Next.js
+- ✅ Vue.js/Nuxt.js
+- ✅ Angular
+- ✅ Vite projects
+- ✅ Mobile apps (React Native, Flutter)
+- ✅ Vanilla JavaScript
+
+### Example Integration
+```javascript
+// React/Next.js example
+const API_BASE = 'http://localhost:5000';
+
+const apiClient = {
+  async login(email, password) {
+    const response = await fetch(`${API_BASE}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    return response.json();
+  },
+
+  async getTasks(token) {
+    const response = await fetch(`${API_BASE}/api/tasks`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+  },
+
+  async createTaskFromMessage(message, token) {
+    const response = await fetch(`${API_BASE}/api/tasks/from-message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ message })
+    });
+    return response.json();
+  }
+};
+```
+
+## 🚀 Deployment
+
+### Platform Support
+- ✅ Render
+- ✅ Railway
+- ✅ Heroku
+- ✅ DigitalOcean
+- ✅ AWS/GCP/Azure
+- ✅ Docker
+
+### Environment Variables for Production
+```env
+NODE_ENV=production
+CLIENT_URL=https://your-frontend-domain.com
+# Add all other required variables
+```
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment guides.
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
+- **[API_EXAMPLES.md](API_EXAMPLES.md)** - Complete API documentation
+- **[FEATURES.md](FEATURES.md)** - Detailed feature list
+- **[FRONTEND_CONNECTIVITY_GUIDE.md](FRONTEND_CONNECTIVITY_GUIDE.md)** - Frontend integration help
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Deployment guides
+
+## 🏗️ Architecture
+
+### Tech Stack
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
+- **Database**: PostgreSQL (Supabase)
+- **AI**: OpenAI GPT-4
+- **Authentication**: JWT + Supabase Auth
+- **File Storage**: Supabase Storage + Cloudinary
+- **Caching**: Redis (optional)
+- **Email**: SendGrid
+- **Push Notifications**: Web Push (VAPID)
+
+### Project Structure
+```
+src/
+├── config/          # Service configurations
+├── controllers/     # Route handlers
+├── middlewares/     # Express middlewares
+├── routes/          # API routes
+├── services/        # Business logic
+└── utils/           # Utility functions
+
+database/
+└── schema.sql       # Database schema
+
+docs/
+├── API_EXAMPLES.md
+├── DEPLOYMENT.md
+└── ...
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**CORS Errors:**
+```bash
+# Add your frontend URL to .env
+CLIENT_URL=http://localhost:3000
+```
+
+**Database Connection:**
+```bash
+# Verify Supabase credentials
+npm run fix
+```
+
+**Redis Issues:**
+```bash
+# Disable Redis if not needed
+echo "DISABLE_REDIS=true" >> .env
+```
+
+**Port Conflicts:**
+```bash
+# Use different port
+echo "PORT=5001" >> .env
+```
+
+Run diagnostics: `npm run fix`
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- OpenAI for GPT-4 API
+- Supabase for backend infrastructure
+- Express.js community
+- All contributors and users
+
+## 📞 Support
+
+- 📖 **Documentation**: Check the `/docs` folder
+- 🐛 **Issues**: Open a GitHub issue
+- 💬 **Discussions**: Use GitHub Discussions
+- 📧 **Email**: your-email@domain.com
+
+---
+
+**⭐ Star this repository if it helped you build something awesome!**

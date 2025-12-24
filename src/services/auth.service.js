@@ -1,5 +1,5 @@
 const bcrypt = require('bcrypt');
-const supabase = require('../config/supabase');
+const { supabase } = require('../config/supabase');
 const { generateToken, generateResetToken, generateVerificationToken, verifyToken } = require('../utils/jwt');
 const emailService = require('./email.service');
 const { OAuth2Client } = require('google-auth-library');

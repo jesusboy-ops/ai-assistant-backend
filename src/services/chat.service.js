@@ -1,6 +1,6 @@
 const openai = require('../config/openai');
-const supabase = require('../config/supabase');
-const { getRedisClient } = require('../config/redis');
+const { supabase } = require('../config/supabase');
+const { getRedisClient, safeRedisOperation } = require('../config/redis');
 
 class ChatService {
   /**

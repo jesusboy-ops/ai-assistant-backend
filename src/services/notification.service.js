@@ -1,21 +1,30 @@
 const webpush = require('web-push');
-const supabase = require('../config/supabase');
+const { supabase } = require('../config/supabase');
 const Bull = require('bull');
-const { getRedisClient } = require('../config/redis');
+const { getRedisClient, isRedisConnected } = require('../config/redis');
 
 class NotificationService {
   constructor() {
-    // Initialize Bull queue for notifications
-    const redisClient = getRedisClient();
-    if (redisClient) {
-      this.notificationQueue = new Bull('notifications', {
-        redis: process.env.REDIS_URL || 'redis://localhost:6379'
-      });
+    // Initialize Bull queue for notifications only if Redis is available
+    if (isRedisConnected()) {
+      try {
+        this.notificationQueue = new Bull('notifications', {
+          redis: process.env.REDIS_URL || 'redis://localhost:6379'
+        });
 
-      // Process notification jobs
-      this.notificationQueue.process(async (job) => {
-        return await this.processNotification(job.data);
-      });
+        // Process notification jobs
+        this.notificationQueue.process(async (job) => {
+          return await this.processNotification(job.data);
+        });
+        
+        console.log('✅ Notification queue initialized with Redis');
+      } catch (error) {
+        console.warn('⚠️  Failed to initialize notification queue:', error.message);
+        this.notificationQueue = null;
+      }
+    } else {
+      console.log('ℹ️  Notification queue disabled (Redis not available)');
+      this.notificationQueue = null;
     }
   }
 

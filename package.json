@@ -6,7 +6,11 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "generate-vapid": "node src/utils/generateVapid.js"
+    "generate-vapid": "node src/utils/generateVapid.js",
+    "test-endpoints": "node test-endpoints.js",
+    "install-deps": "npm install",
+    "setup": "node setup.js",
+    "fix": "node quick-fix.js"
   },
   "keywords": ["ai", "assistant", "jarvis", "gpt", "backend"],
   "author": "",
@@ -16,6 +20,7 @@
     "bcrypt": "^5.1.1",
     "bull": "^4.12.0",
     "cloudinary": "^1.41.0",
+    "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",

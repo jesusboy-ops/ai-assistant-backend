@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const { supabase } = require('../config/supabase');
 const bcrypt = require('bcrypt');
 const uploadService = require('../services/upload.service');
 

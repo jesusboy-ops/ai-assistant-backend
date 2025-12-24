@@ -556,3 +556,345 @@ Currently not implemented. All list endpoints return all results. Consider addin
 3. Handle errors gracefully in your frontend
 4. Test with small files first for uploads
 5. Use proper MIME types for file uploads
+
+---
+
+## 10. Tasks Endpoints (AI Task & To-Do Manager)
+
+### Get All Tasks
+```bash
+curl -X GET http://localhost:5000/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Tasks with Filters
+```bash
+curl -X GET "http://localhost:5000/api/tasks?status=pending&priority=high&limit=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Single Task
+```bash
+curl -X GET http://localhost:5000/api/tasks/TASK_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Create Task
+```bash
+curl -X POST http://localhost:5000/api/tasks \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Complete project proposal",
+    "description": "Write and submit the Q1 project proposal",
+    "priority": "high",
+    "due_date": "2024-12-20T17:00:00Z",
+    "tags": ["work", "urgent", "proposal"]
+  }'
+```
+
+Response:
+```json
+{
+  "task": {
+    "id": "task-id",
+    "title": "Complete project proposal",
+    "description": "Write and submit the Q1 project proposal",
+    "status": "pending",
+    "priority": "high",
+    "due_date": "2024-12-20T17:00:00Z",
+    "tags": ["work", "urgent", "proposal"],
+    "ai_generated": false,
+    "created_at": "2024-12-15T10:00:00Z"
+  }
+}
+```
+
+### Update Task
+```bash
+curl -X PUT http://localhost:5000/api/tasks/TASK_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "status": "in_progress",
+    "priority": "medium"
+  }'
+```
+
+### Delete Task
+```bash
+curl -X DELETE http://localhost:5000/api/tasks/TASK_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Create Tasks from Message (AI Integration)
+```bash
+curl -X POST http://localhost:5000/api/tasks/from-message \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "I need to call the client tomorrow at 2pm, finish the report by Friday, and schedule a team meeting next week",
+    "messageId": "optional-message-id"
+  }'
+```
+
+Response:
+```json
+{
+  "tasks": [
+    {
+      "id": "task-1",
+      "title": "Call the client",
+      "description": "Contact client as discussed",
+      "priority": "medium",
+      "due_date": "2024-12-16T14:00:00Z",
+      "ai_generated": true
+    },
+    {
+      "id": "task-2", 
+      "title": "Finish the report",
+      "priority": "high",
+      "due_date": "2024-12-20T17:00:00Z",
+      "ai_generated": true
+    }
+  ],
+  "message": "Created 2 task(s) from your message"
+}
+```
+
+### Get AI Task Suggestions
+```bash
+curl -X POST http://localhost:5000/api/tasks/suggestions \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "context": "I have been working on a web development project and need to prepare for client presentation"
+  }'
+```
+
+Response:
+```json
+{
+  "suggestions": [
+    {
+      "title": "Prepare presentation slides",
+      "description": "Create slides for client presentation",
+      "priority": "high",
+      "tags": ["presentation", "client"],
+      "reason": "Based on your upcoming client presentation"
+    },
+    {
+      "title": "Test application thoroughly",
+      "description": "Perform end-to-end testing before demo",
+      "priority": "high",
+      "tags": ["testing", "demo"],
+      "reason": "Ensure smooth demo experience"
+    }
+  ]
+}
+```
+
+---
+
+## 11. Reminders Endpoints (Smart Reminders System)
+
+### Get All Reminders
+```bash
+curl -X GET http://localhost:5000/api/reminders \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Upcoming Reminders (Next 24 Hours)
+```bash
+curl -X GET http://localhost:5000/api/reminders/upcoming \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Single Reminder
+```bash
+curl -X GET http://localhost:5000/api/reminders/REMINDER_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Create Reminder
+```bash
+curl -X POST http://localhost:5000/api/reminders \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Take medication",
+    "description": "Take daily vitamins",
+    "reminder_time": "2024-12-16T08:00:00Z",
+    "repeat_type": "daily",
+    "repeat_interval": 1
+  }'
+```
+
+Response:
+```json
+{
+  "reminder": {
+    "id": "reminder-id",
+    "title": "Take medication",
+    "description": "Take daily vitamins",
+    "reminder_time": "2024-12-16T08:00:00Z",
+    "repeat_type": "daily",
+    "repeat_interval": 1,
+    "is_active": true,
+    "ai_generated": false,
+    "created_at": "2024-12-15T10:00:00Z"
+  }
+}
+```
+
+### Update Reminder
+```bash
+curl -X PUT http://localhost:5000/api/reminders/REMINDER_ID \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reminder_time": "2024-12-16T09:00:00Z",
+    "is_active": false
+  }'
+```
+
+### Delete Reminder
+```bash
+curl -X DELETE http://localhost:5000/api/reminders/REMINDER_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Create Reminders from Message (AI Integration)
+```bash
+curl -X POST http://localhost:5000/api/reminders/from-message \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Remind me to call mom tomorrow at 3pm and to pay bills on Friday",
+    "messageId": "optional-message-id"
+  }'
+```
+
+Response:
+```json
+{
+  "reminders": [
+    {
+      "id": "reminder-1",
+      "title": "Call mom",
+      "reminder_time": "2024-12-16T15:00:00Z",
+      "ai_generated": true
+    },
+    {
+      "id": "reminder-2",
+      "title": "Pay bills", 
+      "reminder_time": "2024-12-20T09:00:00Z",
+      "ai_generated": true
+    }
+  ],
+  "message": "Created 2 reminder(s) from your message"
+}
+```
+
+---
+
+## 12. Document Summarizer Endpoints
+
+### Summarize Document
+```bash
+curl -X POST http://localhost:5000/api/documents/summarize \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/document.pdf"
+```
+
+Response:
+```json
+{
+  "summary": {
+    "id": "summary-id",
+    "filename": "document.pdf",
+    "summary": "This document discusses the quarterly financial results...",
+    "key_points": [
+      "Revenue increased by 15% compared to last quarter",
+      "New product launch scheduled for Q2",
+      "Cost reduction initiatives implemented"
+    ],
+    "word_count": 1250,
+    "file_type": "application/pdf",
+    "processing_status": "completed",
+    "created_at": "2024-12-15T10:00:00Z"
+  },
+  "message": "Document summarized successfully"
+}
+```
+
+### Get All Document Summaries
+```bash
+curl -X GET http://localhost:5000/api/documents/summaries \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Get Single Document Summary
+```bash
+curl -X GET http://localhost:5000/api/documents/summaries/SUMMARY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Delete Document Summary
+```bash
+curl -X DELETE http://localhost:5000/api/documents/summaries/SUMMARY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Extract Key Points from Text
+```bash
+curl -X POST http://localhost:5000/api/documents/key-points \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Long text content to extract key points from..."
+  }'
+```
+
+### Extract Key Points from Existing Document
+```bash
+curl -X POST http://localhost:5000/api/documents/key-points \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "document_id": "existing-summary-id"
+  }'
+```
+
+Response:
+```json
+{
+  "key_points": [
+    "Main point 1 extracted from the text",
+    "Important insight 2",
+    "Critical conclusion 3",
+    "Actionable item 4"
+  ]
+}
+```
+
+## New Features Summary
+
+The three new features have been successfully implemented:
+
+### ✅ AI Task & To-Do Manager
+- **Endpoints**: GET/POST/PUT/DELETE `/api/tasks`, POST `/api/tasks/from-message`, POST `/api/tasks/suggestions`
+- **Features**: Task CRUD operations, AI task extraction from messages, intelligent task suggestions
+- **Database**: New `tasks` table with status tracking, priorities, due dates, and AI integration
+
+### ✅ Smart Reminders System  
+- **Endpoints**: GET/POST/PUT/DELETE `/api/reminders`, POST `/api/reminders/from-message`, GET `/api/reminders/upcoming`
+- **Features**: Reminder CRUD operations, AI reminder extraction, recurring reminders, upcoming reminders view
+- **Database**: New `reminders` table with repeat patterns and activation status
+
+### ✅ File & Document Summarizer
+- **Endpoints**: POST `/api/documents/summarize`, GET `/api/documents/summaries`, POST `/api/documents/key-points`
+- **Features**: Document upload and AI summarization, key point extraction, summary storage and retrieval
+- **Database**: New `document_summaries` table with file metadata and AI-generated content
+
+All features include proper authentication, validation, error handling, and AI integration using OpenAI GPT models.

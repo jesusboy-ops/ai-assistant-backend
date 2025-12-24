@@ -27,4 +27,8 @@ const upload = multer({
   fileFilter: fileFilter
 });
 
+// Export different upload configurations
 module.exports = upload;
+module.exports.uploadSingle = upload.single('file');
+module.exports.uploadMultiple = upload.array('files', 5);
+module.exports.uploadFields = upload.fields;

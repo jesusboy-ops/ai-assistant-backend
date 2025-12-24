@@ -1,4 +1,4 @@
-const supabase = require('../config/supabase');
+const { supabase } = require('../config/supabase');
 const cloudinary = require('../config/cloudinary');
 const { v4: uuidv4 } = require('uuid');
 

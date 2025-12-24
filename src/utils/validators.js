@@ -117,6 +117,102 @@ const validators = {
     body('text').trim().notEmpty().withMessage('Text is required'),
     body('voice').optional().isIn(['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']),
     validate
+  ],
+
+  // Task validators
+  createTask: [
+    body('title').trim().notEmpty().withMessage('Title is required'),
+    body('description').optional().trim(),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']),
+    body('due_date').optional().isISO8601().withMessage('Valid due date is required'),
+    body('tags').optional().isArray(),
+    validate
+  ],
+
+  updateTask: [
+    param('id').isUUID().withMessage('Valid task ID is required'),
+    body('title').optional().trim().notEmpty(),
+    body('description').optional().trim(),
+    body('status').optional().isIn(['pending', 'in_progress', 'completed', 'cancelled']),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']),
+    body('due_date').optional().isISO8601(),
+    body('tags').optional().isArray(),
+    validate
+  ],
+
+  getTask: [
+    param('id').isUUID().withMessage('Valid task ID is required'),
+    validate
+  ],
+
+  deleteTask: [
+    param('id').isUUID().withMessage('Valid task ID is required'),
+    validate
+  ],
+
+  createTasksFromMessage: [
+    body('message').trim().notEmpty().withMessage('Message is required'),
+    body('messageId').optional().isString(),
+    validate
+  ],
+
+  getTaskSuggestions: [
+    body('context').optional().trim(),
+    validate
+  ],
+
+  // Reminder validators
+  createReminder: [
+    body('title').trim().notEmpty().withMessage('Title is required'),
+    body('description').optional().trim(),
+    body('reminder_time').isISO8601().withMessage('Valid reminder time is required'),
+    body('repeat_type').optional().isIn(['none', 'daily', 'weekly', 'monthly', 'yearly']),
+    body('repeat_interval').optional().isInt({ min: 1 }),
+    validate
+  ],
+
+  updateReminder: [
+    param('id').isUUID().withMessage('Valid reminder ID is required'),
+    body('title').optional().trim().notEmpty(),
+    body('description').optional().trim(),
+    body('reminder_time').optional().isISO8601(),
+    body('repeat_type').optional().isIn(['none', 'daily', 'weekly', 'monthly', 'yearly']),
+    body('repeat_interval').optional().isInt({ min: 1 }),
+    body('is_active').optional().isBoolean(),
+    validate
+  ],
+
+  getReminder: [
+    param('id').isUUID().withMessage('Valid reminder ID is required'),
+    validate
+  ],
+
+  deleteReminder: [
+    param('id').isUUID().withMessage('Valid reminder ID is required'),
+    validate
+  ],
+
+  createRemindersFromMessage: [
+    body('message').trim().notEmpty().withMessage('Message is required'),
+    body('messageId').optional().isString(),
+    validate
+  ],
+
+  // Document validators
+  getDocumentSummary: [
+    param('id').isUUID().withMessage('Valid document summary ID is required'),
+    validate
+  ],
+
+  deleteDocumentSummary: [
+    param('id').isUUID().withMessage('Valid document summary ID is required'),
+    validate
+  ],
+
+  extractKeyPoints: [
+    body('text').optional().trim(),
+    body('document_id').optional().isUUID(),
+    validate
   ]
 };
 
