@@ -21,6 +21,7 @@ const voiceRoutes = require('./routes/voice.routes');
 const tasksRoutes = require('./routes/tasks.routes');
 const remindersRoutes = require('./routes/reminders.routes');
 const documentsRoutes = require('./routes/documents.routes');
+const translationRoutes = require('./routes/translation.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -197,6 +198,7 @@ app.get('/api/status', (req, res) => {
       tasks: '/api/tasks',
       reminders: '/api/reminders',
       documents: '/api/documents',
+      translation: '/api/translation',
       calendar: '/api/calendar',
       notes: '/api/notes',
       voice: '/api/voice',
@@ -245,6 +247,7 @@ app.use('/api/voice', voiceRoutes);
 app.use('/api/tasks', tasksRoutes);
 app.use('/api/reminders', remindersRoutes);
 app.use('/api/documents', documentsRoutes);
+app.use('/api/translation', translationRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
