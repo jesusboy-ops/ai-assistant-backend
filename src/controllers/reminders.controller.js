@@ -34,12 +34,15 @@ const getReminders = async (req, res) => {
 };
 
 /**
- * Get upcoming reminders (next 24 hours)
+ * Get upcoming reminders (configurable days ahead)
  */
 const getUpcomingReminders = async (req, res) => {
   try {
+    const { days = 1 } = req.query; // Default to 1 day if not specified
+    const daysAhead = Math.min(Math.max(parseInt(days) || 1, 1), 365); // Limit between 1-365 days
+    
     const now = new Date();
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const futureDate = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
 
     const { data: reminders, error } = await supabase
       .from('reminders')
@@ -47,7 +50,7 @@ const getUpcomingReminders = async (req, res) => {
       .eq('user_id', req.user.id)
       .eq('is_active', true)
       .gte('reminder_time', now.toISOString())
-      .lte('reminder_time', tomorrow.toISOString())
+      .lte('reminder_time', futureDate.toISOString())
       .order('reminder_time', { ascending: true });
 
     if (error) {
@@ -55,7 +58,14 @@ const getUpcomingReminders = async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch upcoming reminders' });
     }
 
-    res.json({ reminders });
+    res.json({ 
+      reminders,
+      days_ahead: daysAhead,
+      date_range: {
+        from: now.toISOString(),
+        to: futureDate.toISOString()
+      }
+    });
   } catch (error) {
     console.error('Error in getUpcomingReminders:', error);
     res.status(500).json({ error: 'Internal server error' });
