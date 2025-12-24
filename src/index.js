@@ -169,8 +169,8 @@ app.get('/health', async (req, res) => {
 
   // Test Supabase connection
   try {
-    const { error } = await supabase.rpc('version');
-    health.services.database = error ? 'error' : 'ok';
+    const { getSupabaseStatus } = require('./config/supabase');
+    health.services.database = getSupabaseStatus() ? 'ok' : 'mock';
   } catch (e) {
     health.services.database = 'error';
   }
@@ -203,6 +203,32 @@ app.get('/api/status', (req, res) => {
       upload: '/api/upload',
       notifications: '/api/notifications'
     }
+  });
+});
+
+// Root API endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    message: 'Smart AI Assistant Backend API',
+    status: 'online',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    documentation: '/api/status'
+  });
+});
+
+// Auth status endpoint (what your frontend is looking for)
+app.get('/api/auth/status', (req, res) => {
+  res.json({
+    service: 'Authentication Service',
+    status: 'online',
+    endpoints: {
+      register: 'POST /api/auth/register',
+      login: 'POST /api/auth/login',
+      google: 'POST /api/auth/oauth/google',
+      me: 'GET /api/auth/me'
+    },
+    timestamp: new Date().toISOString()
   });
 });
 
