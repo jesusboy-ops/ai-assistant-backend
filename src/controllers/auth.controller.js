@@ -41,6 +41,48 @@ class AuthController {
   }
 
   /**
+   * Google OAuth callback - handle authorization code from redirect
+   */
+  async googleOAuthCallback(req, res, next) {
+    try {
+      const { code, error, state } = req.query;
+
+      // Handle OAuth errors
+      if (error) {
+        console.error('OAuth error:', error);
+        return res.redirect(`${process.env.CLIENT_URL}/auth/error?error=${encodeURIComponent(error)}`);
+      }
+
+      if (!code) {
+        return res.redirect(`${process.env.CLIENT_URL}/auth/error?error=no_code`);
+      }
+
+      // Exchange code for tokens and get user info
+      const result = await authService.googleOAuthCallback(code);
+
+      // Redirect to frontend with token
+      const redirectUrl = `${process.env.CLIENT_URL}/auth/callback?token=${result.token}&user=${encodeURIComponent(JSON.stringify(result.user))}`;
+      res.redirect(redirectUrl);
+
+    } catch (error) {
+      console.error('OAuth callback error:', error);
+      res.redirect(`${process.env.CLIENT_URL}/auth/error?error=auth_failed`);
+    }
+  }
+
+  /**
+   * Get Google OAuth URL
+   */
+  async getGoogleAuthUrl(req, res, next) {
+    try {
+      const authUrl = authService.getGoogleAuthUrl();
+      res.json({ authUrl });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Request password reset
    */
   async requestPasswordReset(req, res, next) {
