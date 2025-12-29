@@ -97,6 +97,10 @@ CREATE INDEX IF NOT EXISTS idx_reminders_time ON reminders(reminder_time);
 CREATE INDEX IF NOT EXISTS idx_reminders_active ON reminders(is_active);
 CREATE INDEX IF NOT EXISTS idx_document_summaries_user_id ON document_summaries(user_id);
 CREATE INDEX IF NOT EXISTS idx_document_summaries_file_id ON document_summaries(file_id);
+CREATE INDEX IF NOT EXISTS idx_life_obligations_user_id ON life_obligations(user_id);
+CREATE INDEX IF NOT EXISTS idx_life_obligations_due_date ON life_obligations(due_date);
+CREATE INDEX IF NOT EXISTS idx_life_obligations_status ON life_obligations(status);
+CREATE INDEX IF NOT EXISTS idx_life_obligations_type ON life_obligations(type);
 
 -- Tasks table for AI Task & To-Do Manager
 CREATE TABLE IF NOT EXISTS tasks (
@@ -147,6 +151,23 @@ CREATE TABLE IF NOT EXISTS document_summaries (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Life obligations table for Life Admin Manager
+CREATE TABLE IF NOT EXISTS life_obligations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    category VARCHAR(50) DEFAULT 'other' CHECK (category IN ('education', 'finance', 'work', 'personal', 'health', 'other')),
+    type VARCHAR(20) DEFAULT 'one_time' CHECK (type IN ('one_time', 'recurring')),
+    frequency VARCHAR(20) CHECK (frequency IN ('daily', 'weekly', 'monthly', 'yearly')),
+    due_date TIMESTAMP WITH TIME ZONE NOT NULL,
+    consequence TEXT,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'overdue')),
+    risk_level VARCHAR(10) DEFAULT 'medium' CHECK (risk_level IN ('low', 'medium', 'high')),
+    last_completed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Create storage bucket for files (run in Supabase Storage)
 -- Go to Storage > Create bucket > name: "files" > public: true
 
@@ -161,6 +182,7 @@ ALTER TABLE push_subscriptions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE document_summaries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE life_obligations ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies (users can only access their own data)
 CREATE POLICY "Users can view own data" ON users FOR SELECT USING (auth.uid() = id);
@@ -178,3 +200,4 @@ CREATE POLICY "Users can manage own subscriptions" ON push_subscriptions FOR ALL
 CREATE POLICY "Users can manage own tasks" ON tasks FOR ALL USING (user_id = auth.uid());
 CREATE POLICY "Users can manage own reminders" ON reminders FOR ALL USING (user_id = auth.uid());
 CREATE POLICY "Users can manage own document summaries" ON document_summaries FOR ALL USING (user_id = auth.uid());
+CREATE POLICY "Users can manage own life obligations" ON life_obligations FOR ALL USING (user_id = auth.uid());

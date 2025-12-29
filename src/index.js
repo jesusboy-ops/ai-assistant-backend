@@ -22,6 +22,7 @@ const tasksRoutes = require('./routes/tasks.routes');
 const remindersRoutes = require('./routes/reminders.routes');
 const documentsRoutes = require('./routes/documents.routes');
 const translationRoutes = require('./routes/translation.routes');
+const lifeAdminRoutes = require('./routes/lifeAdmin.routes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -199,6 +200,7 @@ app.get('/api/status', (req, res) => {
       reminders: '/api/reminders',
       documents: '/api/documents',
       translation: '/api/translation',
+      lifeAdmin: '/api/life-admin',
       calendar: '/api/calendar',
       notes: '/api/notes',
       voice: '/api/voice',
@@ -248,6 +250,7 @@ app.use('/api/tasks', tasksRoutes);
 app.use('/api/reminders', remindersRoutes);
 app.use('/api/documents', documentsRoutes);
 app.use('/api/translation', translationRoutes);
+app.use('/api/life-admin', lifeAdminRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
@@ -299,6 +302,20 @@ async function startServer() {
       // Don't log the error details as they're already logged in redis.js
     }
     
+    // Initialize Life Admin cron jobs
+    console.log('⏰ Initializing Life Admin cron jobs...');
+    try {
+      // Only initialize cron jobs if Redis is available
+      if (process.env.REDIS_DISABLED !== 'true' && process.env.REDIS_HOST) {
+        const CronJobsService = require('./services/cronJobs.service');
+        await CronJobsService.initializeCronJobs();
+      } else {
+        console.warn('⚠️  Cron jobs disabled (Redis not available)');
+      }
+    } catch (cronError) {
+      console.warn('⚠️  Cron jobs initialization failed:', cronError.message);
+    }
+    
     // Start the server
     const server = app.listen(PORT, '0.0.0.0', () => {
       console.log('🚀 Server running successfully!');
@@ -307,6 +324,7 @@ async function startServer() {
       console.log(`🔗 Health check: http://localhost:${PORT}/health`);
       console.log(`📊 API status: http://localhost:${PORT}/api/status`);
       console.log(`🎯 Ready for frontend connections!`);
+      console.log('🧠 Life Admin Manager: Active');
     });
 
     // Set server timeout

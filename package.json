@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "generate-vapid": "node src/utils/generateVapid.js",
     "test-endpoints": "node test-endpoints.js",
+    "test-life-admin": "node test-life-admin.js",
     "install-deps": "npm install",
     "setup": "node setup.js",
     "fix": "node quick-fix.js"
