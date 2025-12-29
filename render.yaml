@@ -1,0 +1,50 @@
+# Render.com deployment configuration
+# This file enables automatic deployments to Render.com
+
+services:
+  - type: web
+    name: ai-assistant-backend
+    env: node
+    plan: starter # Change to 'standard' or 'pro' for production
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    
+    # Auto-deploy from Git
+    autoDeploy: true
+    
+    # Environment variables (set these in Render dashboard)
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: SUPABASE_URL
+        sync: false # Set manually in dashboard
+      - key: SUPABASE_SERVICE_KEY
+        sync: false # Set manually in dashboard
+      - key: OPENAI_API_KEY
+        sync: false # Set manually in dashboard
+      - key: JWT_SECRET
+        sync: false # Set manually in dashboard
+      - key: SENDGRID_API_KEY
+        sync: false # Set manually in dashboard (optional)
+      - key: EMAIL_FROM
+        sync: false # Set manually in dashboard (optional)
+      
+    # Scaling configuration
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      
+    # Health check configuration
+    healthCheck:
+      path: /health
+      intervalSeconds: 30
+      timeoutSeconds: 10
+      
+    # Disk configuration
+    disk:
+      name: ai-assistant-data
+      mountPath: /data
+      sizeGB: 1
