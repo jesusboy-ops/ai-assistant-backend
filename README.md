@@ -13,11 +13,13 @@ A comprehensive, production-ready backend for an AI-powered personal assistant w
 
 ### 🤖 **AI-Powered Features**
 - **AI Chat Assistant** - GPT-4 powered conversations
+- **Life Admin Manager** - Manage real-life obligations with consequences
 - **Task Manager** - Extract tasks from natural language
 - **Smart Reminders** - AI-powered reminder creation
 - **Document Summarizer** - Upload and summarize documents
 - **Email Generator** - AI-generated professional emails
 - **Voice Features** - Text-to-speech and speech-to-text
+- **Notes Enhancement** - Extract actions and deadlines from notes
 
 ### 📊 **Core Functionality**
 - **Calendar Management** - Events, scheduling, reminders
@@ -98,9 +100,10 @@ curl http://localhost:5000/health
 - `POST /api/documents/key-points` - Extract key points
 
 ### Additional Features
+- **Life Admin Manager** - Real-life obligations with automatic task/reminder generation
 - Calendar events, notes, file upload, voice features, notifications
 
-**Total: 54 API endpoints** - See [API_EXAMPLES.md](API_EXAMPLES.md) for complete documentation.
+**Total: 69 API endpoints** - See [API_EXAMPLES.md](API_EXAMPLES.md) and [LIFE_ADMIN_API_GUIDE.md](LIFE_ADMIN_API_GUIDE.md) for complete documentation.
 
 ## 🛠️ Configuration
 
@@ -146,6 +149,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 ### Available Scripts
 ```bash
 npm run dev          # Start development server
+npm run test-life-admin  # Test Life Admin Manager
 npm run start        # Start production server
 npm run test-endpoints # Test all API endpoints
 npm run fix          # Diagnose common issues

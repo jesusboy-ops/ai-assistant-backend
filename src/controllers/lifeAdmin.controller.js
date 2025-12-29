@@ -167,7 +167,7 @@ class LifeAdminController {
       const { input, context } = req.body;
 
       // AI Logic: Detect obligations, tasks, reminders from input
-      const plan = await this.processUserInput(userId, input, context);
+      const plan = await LifeAdminController.processUserInput(userId, input, context);
 
       res.json(plan);
     } catch (error) {

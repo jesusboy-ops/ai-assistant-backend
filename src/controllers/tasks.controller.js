@@ -1,5 +1,5 @@
 const { supabase } = require('../config/supabase');
-const { openai } = require('../config/openai');
+const openai = require('../config/openai');
 
 /**
  * Get all tasks for the authenticated user
