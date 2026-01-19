@@ -1,8 +1,9 @@
 const { supabase } = require('../config/supabase');
-const { openai } = require('../config/openai');
+const openai = require('../config/openai');
 
 /**
  * Get all reminders for the authenticated user
+ * Frontend expects: Array of reminder objects with specific format
  */
 const getReminders = async (req, res) => {
   try {
@@ -23,13 +24,31 @@ const getReminders = async (req, res) => {
 
     if (error) {
       console.error('Error fetching reminders:', error);
-      return res.status(500).json({ error: 'Failed to fetch reminders' });
+      return res.status(500).json({ 
+        message: 'Failed to fetch reminders',
+        error: 'DATABASE_ERROR'
+      });
     }
 
-    res.json({ reminders });
+    // Transform data to match frontend format exactly
+    const formattedReminders = reminders.map(reminder => ({
+      id: reminder.id,
+      title: reminder.title,
+      description: reminder.description || '',
+      reminder_time: reminder.reminder_time, // ISO date string
+      reminder_type: reminder.repeat_type === 'none' ? 'general' : reminder.repeat_type, // Map to frontend types
+      priority: 'medium', // Default priority since not in current schema
+      triggered: !reminder.is_active, // Map is_active to triggered (inverted)
+      createdAt: reminder.created_at
+    }));
+
+    res.json(formattedReminders);
   } catch (error) {
     console.error('Error in getReminders:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
@@ -100,6 +119,8 @@ const getReminder = async (req, res) => {
 
 /**
  * Create a new reminder
+ * Frontend sends: {title, description, reminder_time, reminder_type, priority}
+ * Returns: Created reminder object with exact frontend format
  */
 const createReminder = async (req, res) => {
   try {
@@ -107,19 +128,54 @@ const createReminder = async (req, res) => {
       title, 
       description, 
       reminder_time, 
-      repeat_type = 'none', 
-      repeat_interval = 1 
+      reminder_type = 'general',
+      priority = 'medium'
     } = req.body;
+
+    // Validate required fields
+    if (!title || title.trim() === '') {
+      return res.status(400).json({
+        message: 'Title is required',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'title', message: 'Title is required' }]
+      });
+    }
+
+    if (!reminder_time) {
+      return res.status(400).json({
+        message: 'Reminder time is required',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'reminder_time', message: 'Reminder time is required' }]
+      });
+    }
+
+    // Validate reminder_time is a valid ISO date
+    let parsedDate;
+    try {
+      parsedDate = new Date(reminder_time);
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error('Invalid date');
+      }
+    } catch (dateError) {
+      return res.status(400).json({
+        message: 'Invalid reminder time format',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'reminder_time', message: 'Reminder time must be a valid ISO date string' }]
+      });
+    }
+
+    // Map frontend reminder_type to backend repeat_type
+    const repeat_type = reminder_type === 'general' ? 'none' : reminder_type;
 
     const { data: reminder, error } = await supabase
       .from('reminders')
       .insert({
         user_id: req.user.id,
-        title,
-        description,
-        reminder_time,
+        title: title.trim(),
+        description: description || '',
+        reminder_time: parsedDate.toISOString(),
         repeat_type,
-        repeat_interval,
+        repeat_interval: 1,
         is_active: true
       })
       .select()
@@ -127,18 +183,38 @@ const createReminder = async (req, res) => {
 
     if (error) {
       console.error('Error creating reminder:', error);
-      return res.status(500).json({ error: 'Failed to create reminder' });
+      return res.status(500).json({ 
+        message: 'Failed to create reminder',
+        error: 'DATABASE_ERROR'
+      });
     }
 
-    res.status(201).json({ reminder });
+    // Return reminder in frontend format
+    const formattedReminder = {
+      id: reminder.id,
+      title: reminder.title,
+      description: reminder.description || '',
+      reminder_time: reminder.reminder_time,
+      reminder_type: reminder.repeat_type === 'none' ? 'general' : reminder.repeat_type,
+      priority: priority,
+      triggered: false,
+      createdAt: reminder.created_at
+    };
+
+    res.status(201).json(formattedReminder);
   } catch (error) {
     console.error('Error in createReminder:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
 /**
  * Update an existing reminder
+ * Frontend sends: {title, description, reminder_time, reminder_type, priority}
+ * Returns: Updated reminder object with exact frontend format
  */
 const updateReminder = async (req, res) => {
   try {
@@ -147,21 +223,47 @@ const updateReminder = async (req, res) => {
       title, 
       description, 
       reminder_time, 
-      repeat_type, 
-      repeat_interval, 
-      is_active 
+      reminder_type,
+      priority
     } = req.body;
+
+    // Validate title if provided
+    if (title !== undefined && (!title || title.trim() === '')) {
+      return res.status(400).json({
+        message: 'Title cannot be empty',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'title', message: 'Title cannot be empty' }]
+      });
+    }
 
     const updateData = {
       updated_at: new Date().toISOString()
     };
 
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
-    if (reminder_time !== undefined) updateData.reminder_time = reminder_time;
-    if (repeat_type !== undefined) updateData.repeat_type = repeat_type;
-    if (repeat_interval !== undefined) updateData.repeat_interval = repeat_interval;
-    if (is_active !== undefined) updateData.is_active = is_active;
+    if (title !== undefined) updateData.title = title.trim();
+    if (description !== undefined) updateData.description = description || '';
+    
+    // Validate and update reminder_time
+    if (reminder_time !== undefined) {
+      try {
+        const parsedDate = new Date(reminder_time);
+        if (isNaN(parsedDate.getTime())) {
+          throw new Error('Invalid date');
+        }
+        updateData.reminder_time = parsedDate.toISOString();
+      } catch (dateError) {
+        return res.status(400).json({
+          message: 'Invalid reminder time format',
+          error: 'VALIDATION_ERROR',
+          errors: [{ field: 'reminder_time', message: 'Reminder time must be a valid ISO date string' }]
+        });
+      }
+    }
+
+    // Map frontend reminder_type to backend repeat_type
+    if (reminder_type !== undefined) {
+      updateData.repeat_type = reminder_type === 'general' ? 'none' : reminder_type;
+    }
 
     const { data: reminder, error } = await supabase
       .from('reminders')
@@ -173,18 +275,37 @@ const updateReminder = async (req, res) => {
 
     if (error) {
       console.error('Error updating reminder:', error);
-      return res.status(404).json({ error: 'Reminder not found or update failed' });
+      return res.status(404).json({ 
+        message: 'Reminder not found or update failed',
+        error: 'NOT_FOUND'
+      });
     }
 
-    res.json({ reminder });
+    // Return reminder in frontend format
+    const formattedReminder = {
+      id: reminder.id,
+      title: reminder.title,
+      description: reminder.description || '',
+      reminder_time: reminder.reminder_time,
+      reminder_type: reminder.repeat_type === 'none' ? 'general' : reminder.repeat_type,
+      priority: priority || 'medium',
+      triggered: !reminder.is_active,
+      createdAt: reminder.created_at
+    };
+
+    res.json(formattedReminder);
   } catch (error) {
     console.error('Error in updateReminder:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
 /**
  * Delete a reminder
+ * Returns: Success confirmation
  */
 const deleteReminder = async (req, res) => {
   try {
@@ -198,13 +319,22 @@ const deleteReminder = async (req, res) => {
 
     if (error) {
       console.error('Error deleting reminder:', error);
-      return res.status(404).json({ error: 'Reminder not found' });
+      return res.status(404).json({ 
+        message: 'Reminder not found',
+        error: 'NOT_FOUND'
+      });
     }
 
-    res.json({ message: 'Reminder deleted successfully' });
+    res.json({ 
+      message: 'Reminder deleted successfully',
+      id: id
+    });
   } catch (error) {
     console.error('Error in deleteReminder:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 

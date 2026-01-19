@@ -3,6 +3,7 @@ const openai = require('../config/openai');
 
 /**
  * Get all tasks for the authenticated user
+ * Frontend expects: Array of task objects with specific format
  */
 const getTasks = async (req, res) => {
   try {
@@ -27,13 +28,31 @@ const getTasks = async (req, res) => {
 
     if (error) {
       console.error('Error fetching tasks:', error);
-      return res.status(500).json({ error: 'Failed to fetch tasks' });
+      return res.status(500).json({ 
+        message: 'Failed to fetch tasks',
+        error: 'DATABASE_ERROR'
+      });
     }
 
-    res.json({ tasks });
+    // Transform data to match frontend format exactly
+    const formattedTasks = tasks.map(task => ({
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? task.due_date.split('T')[0] : null, // YYYY-MM-DD format
+      createdAt: task.created_at,
+      updatedAt: task.updated_at
+    }));
+
+    res.json(formattedTasks);
   } catch (error) {
     console.error('Error in getTasks:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
@@ -53,67 +72,154 @@ const getTask = async (req, res) => {
 
     if (error) {
       console.error('Error fetching task:', error);
-      return res.status(404).json({ error: 'Task not found' });
+      return res.status(404).json({ 
+        message: 'Task not found',
+        error: 'NOT_FOUND'
+      });
     }
 
-    res.json({ task });
+    // Transform data to match frontend format
+    const formattedTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? task.due_date.split('T')[0] : null,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at
+    };
+
+    res.json(formattedTask);
   } catch (error) {
     console.error('Error in getTask:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
 /**
  * Create a new task
+ * Frontend sends: {title, description, priority, status, dueDate}
+ * Returns: Created task object with exact frontend format
  */
 const createTask = async (req, res) => {
   try {
-    const { title, description, priority = 'medium', due_date, tags = [] } = req.body;
+    const { title, description, priority = 'medium', status = 'pending', dueDate } = req.body;
+
+    // Validate required fields
+    if (!title || title.trim() === '') {
+      return res.status(400).json({
+        message: 'Title is required',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'title', message: 'Title is required' }]
+      });
+    }
+
+    // Convert dueDate from YYYY-MM-DD to ISO string if provided
+    let due_date = null;
+    if (dueDate) {
+      try {
+        due_date = new Date(dueDate + 'T00:00:00.000Z').toISOString();
+      } catch (dateError) {
+        return res.status(400).json({
+          message: 'Invalid date format',
+          error: 'VALIDATION_ERROR',
+          errors: [{ field: 'dueDate', message: 'Date must be in YYYY-MM-DD format' }]
+        });
+      }
+    }
 
     const { data: task, error } = await supabase
       .from('tasks')
       .insert({
         user_id: req.user.id,
-        title,
-        description,
+        title: title.trim(),
+        description: description || '',
         priority,
+        status,
         due_date,
-        tags,
-        status: 'pending'
+        tags: []
       })
       .select()
       .single();
 
     if (error) {
       console.error('Error creating task:', error);
-      return res.status(500).json({ error: 'Failed to create task' });
+      return res.status(500).json({ 
+        message: 'Failed to create task',
+        error: 'DATABASE_ERROR'
+      });
     }
 
-    res.status(201).json({ task });
+    // Return task in frontend format
+    const formattedTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? task.due_date.split('T')[0] : null,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at
+    };
+
+    res.status(201).json(formattedTask);
   } catch (error) {
     console.error('Error in createTask:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
 /**
  * Update an existing task
+ * Frontend sends: {title, description, priority, status, dueDate}
+ * Returns: Updated task object with exact frontend format
  */
 const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, status, priority, due_date, tags } = req.body;
+    const { title, description, status, priority, dueDate } = req.body;
+
+    // Validate required fields if provided
+    if (title !== undefined && (!title || title.trim() === '')) {
+      return res.status(400).json({
+        message: 'Title cannot be empty',
+        error: 'VALIDATION_ERROR',
+        errors: [{ field: 'title', message: 'Title cannot be empty' }]
+      });
+    }
 
     const updateData = {
       updated_at: new Date().toISOString()
     };
 
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
+    if (title !== undefined) updateData.title = title.trim();
+    if (description !== undefined) updateData.description = description || '';
     if (status !== undefined) updateData.status = status;
     if (priority !== undefined) updateData.priority = priority;
-    if (due_date !== undefined) updateData.due_date = due_date;
-    if (tags !== undefined) updateData.tags = tags;
+    
+    // Convert dueDate from YYYY-MM-DD to ISO string if provided
+    if (dueDate !== undefined) {
+      if (dueDate === null || dueDate === '') {
+        updateData.due_date = null;
+      } else {
+        try {
+          updateData.due_date = new Date(dueDate + 'T00:00:00.000Z').toISOString();
+        } catch (dateError) {
+          return res.status(400).json({
+            message: 'Invalid date format',
+            error: 'VALIDATION_ERROR',
+            errors: [{ field: 'dueDate', message: 'Date must be in YYYY-MM-DD format' }]
+          });
+        }
+      }
+    }
 
     const { data: task, error } = await supabase
       .from('tasks')
@@ -125,18 +231,37 @@ const updateTask = async (req, res) => {
 
     if (error) {
       console.error('Error updating task:', error);
-      return res.status(404).json({ error: 'Task not found or update failed' });
+      return res.status(404).json({ 
+        message: 'Task not found or update failed',
+        error: 'NOT_FOUND'
+      });
     }
 
-    res.json({ task });
+    // Return task in frontend format
+    const formattedTask = {
+      id: task.id,
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      status: task.status,
+      dueDate: task.due_date ? task.due_date.split('T')[0] : null,
+      createdAt: task.created_at,
+      updatedAt: task.updated_at
+    };
+
+    res.json(formattedTask);
   } catch (error) {
     console.error('Error in updateTask:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 
 /**
  * Delete a task
+ * Returns: Success confirmation
  */
 const deleteTask = async (req, res) => {
   try {
@@ -150,13 +275,22 @@ const deleteTask = async (req, res) => {
 
     if (error) {
       console.error('Error deleting task:', error);
-      return res.status(404).json({ error: 'Task not found' });
+      return res.status(404).json({ 
+        message: 'Task not found',
+        error: 'NOT_FOUND'
+      });
     }
 
-    res.json({ message: 'Task deleted successfully' });
+    res.json({ 
+      message: 'Task deleted successfully',
+      id: id
+    });
   } catch (error) {
     console.error('Error in deleteTask:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ 
+      message: 'Internal server error',
+      error: 'SERVER_ERROR'
+    });
   }
 };
 

@@ -6,9 +6,15 @@ const { body, param, query, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    const errorDetails = errors.array().map(error => ({
+      field: error.path,
+      message: error.msg
+    }));
+    
     return res.status(400).json({ 
-      error: 'Validation failed', 
-      details: errors.array() 
+      message: 'Validation failed',
+      error: 'VALIDATION_ERROR',
+      errors: errorDetails
     });
   }
   next();
@@ -74,17 +80,24 @@ const validators = {
   // Calendar validators
   createEvent: [
     body('title').trim().notEmpty().withMessage('Title is required'),
-    body('start_time').isISO8601().withMessage('Valid start time is required'),
-    body('end_time').isISO8601().withMessage('Valid end time is required'),
+    body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Date must be in YYYY-MM-DD format'),
+    body('time').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Time must be in HH:MM format'),
+    body('duration').optional().isInt({ min: 1 }).withMessage('Duration must be a positive integer'),
     body('description').optional().trim(),
+    body('location').optional().trim(),
+    body('color').optional().trim(),
     validate
   ],
 
   updateEvent: [
     param('id').isUUID().withMessage('Valid event ID is required'),
     body('title').optional().trim().notEmpty(),
-    body('start_time').optional().isISO8601(),
-    body('end_time').optional().isISO8601(),
+    body('date').optional().matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Date must be in YYYY-MM-DD format'),
+    body('time').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Time must be in HH:MM format'),
+    body('duration').optional().isInt({ min: 1 }).withMessage('Duration must be a positive integer'),
+    body('description').optional().trim(),
+    body('location').optional().trim(),
+    body('color').optional().trim(),
     validate
   ],
 
